@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4866611383493143606
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3987221390891504945}
+  - component: {fileID: 7186514000436687339}
+  - component: {fileID: 7186514000436687340}
+  - component: {fileID: 7546666095620721891}
+  m_Layer: 0
+  m_Name: Game Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 4294967295
+  m_IsActive: 1
+--- !u!4 &3987221390891504945
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4866611383493143606}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 599, y: 449.25, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7186514000436687339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4866611383493143606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20547ff196145dd48a09908a7267f303, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerPrefab: {fileID: 12125486734499060, guid: 6e6b928ed8be2e5458d5a1771eab69eb,
+    type: 3}
+  LocalPlayerInstance: {fileID: 0}
+  elapsedInRound: 0
+  spawnsParent: {fileID: 0}
+  pickupsParent: {fileID: 0}
+  pickupPrefab: {fileID: 3438198853846528615, guid: 0d6e5d10aa2de4a4c8ccd73532eb690c,
+    type: 3}
+  roundObjectsToDestroy: []
+  gameState:
+    timeLimit: 0
+    numPlayers: 0
+    gameStatus: 0
+    intelPickedUp: 0
+    playersReadiedUp: 0
+    randomSeed: 0
+    lastRoundWinner: 0
+    numTraitors: 0
+  spawnParams:
+    num_aks: 3
+    num_assault_rifles: 3
+    num_shotguns: 3
+    num_innocent_intel: 1
+    num_traitor_intel: 1
+    num_ammo_sm: 2
+    num_ammo_lg: 3
+  weaponMappings: []
+  pickupDistributions: []
+  pickupSpawnChance: 1
+  minPlayersToStart: 0
+--- !u!114 &7186514000436687340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4866611383493143606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 1
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 7186514000436687339}
+  sceneViewId: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!114 &7546666095620721891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4866611383493143606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74b6ea99e6692ee4483634bd96f97881, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pickupPrefab: {fileID: 423074783859397134, guid: 4feea5dc6e8958445892135d11ff3e67,
+    type: 3}
+  spawnPrefab: {fileID: 5522045770087401598, guid: d3f2f3836866a48cca53d292315272db,
+    type: 3}
+  overrideBlocks: []
+  floor: {fileID: 0}
+  pieceY: 8.5
+  tileScale: {x: 4, y: 4}
+  mapTex: {fileID: 2800000, guid: 6cfae4ab1a12f2c458b088c5639ce8a7, type: 3}
+  rotationOffset: -90
