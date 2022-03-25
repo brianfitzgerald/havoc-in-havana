@@ -158,6 +158,7 @@ public class UIController : MonoBehaviourPun
     }
     void Update()
     {
+        Debug.Log(GameController.GetStackTrace());
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -208,6 +209,7 @@ public class UIController : MonoBehaviourPun
 
     public void UpdateWaitingText(PlayerController playerController, bool subtractOne = false)
     {
+        Debug.Log(GameController.GetStackTrace());
         GameController.Instance.RefreshPlayers();
         var unReadyPlayers = GameController.Instance.playerReferences.Values.Where(p => !p.playerState.ready).Count();
         if (subtractOne)
@@ -287,6 +289,7 @@ public class UIController : MonoBehaviourPun
 
     public void SetIncidentalText(string interactionPrompt = null, bool instantShow = false)
     {
+        Debug.Log(GameController.GetStackTrace());
         if (activeIncidentalTextGroup != null)
         {
             StopCoroutine(activeIncidentalTextGroup);

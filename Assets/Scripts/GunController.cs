@@ -5,8 +5,6 @@ using Photon.Pun;
 using System.Linq;
 using UnityEngine.UI;
 
-
-
 public enum SoundEffect
 {
     IDLE,
@@ -502,6 +500,7 @@ public class GunController : MonoBehaviourPun
 
     private void Update()
     {
+        Debug.Log(GameController.GetStackTrace());
         // this should only happen if we've just joined
         if (GameController.Instance == null)
         {
@@ -733,9 +732,12 @@ public class GunController : MonoBehaviourPun
                     // replication - need new weapon type to be consistent
                     var newIndex = UnityEngine.Random.Range(0, GameController.Instance.pickupDistributions.Count - 1);
                     playerController.hasPrimaryWeapon = true;
-                    if (pickup.pickupType == PickupType.AMMO) {
+                    if (pickup.pickupType == PickupType.AMMO)
+                    {
                         PlaySound((int)SoundEffect.PICKED_UP_AMMO);
-                    } else {
+                    }
+                    else
+                    {
                         PlaySound((int)SoundEffect.PICKED_UP_WEAPON);
                     }
                     pickup.photonView.RPC("PlayerPickedUp", RpcTarget.All, pickup.showBeacon, newIndex);

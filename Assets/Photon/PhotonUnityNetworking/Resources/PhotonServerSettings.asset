@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AppSettings:
     AppIdRealtime: 084e4a8c-69fc-4c59-85c1-42119908cf31
+    AppIdFusion: 
     AppIdChat: 
     AppIdVoice: 
     AppVersion: 
@@ -30,14 +31,13 @@ MonoBehaviour:
   DevRegion: us
   PunLogging: 0
   EnableSupportLogger: 0
-  RunInBackground: 1
+  RunInBackground: 0
   StartInOfflineMode: 0
   RpcList:
   - ClickRpc
   - DestroyRpc
   - DestroySpaceship
   - Fire
-  - RespawnSpaceship
   - KillPlayer
   - PickUpObjective
   - PlayerPickedUp
@@ -45,6 +45,7 @@ MonoBehaviour:
   - PlayerReload
   - PlayerShoot
   - PlaySound
+  - RespawnSpaceship
   - RevivePlayer
   - SetData
   - SetPlayerInfo

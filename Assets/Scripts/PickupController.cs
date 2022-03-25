@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using Photon.Pun;
+using System.Diagnostics;
 
 
 [System.Serializable]
@@ -240,6 +241,7 @@ public class PickupController : MonoBehaviourPun, IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
+        UnityEngine.Debug.Log(System.Environment.StackTrace);
         if (stream.IsWriting)
         {
             stream.SendNext((int)this.pickupType);

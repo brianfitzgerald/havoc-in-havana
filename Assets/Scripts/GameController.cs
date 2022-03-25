@@ -434,6 +434,7 @@ public class GameController : MonoBehaviourPunCallbacks, IInRoomCallbacks, IPunO
 
     void Update()
     {
+        Debug.Log(GameController.GetStackTrace());
         if (waitingForMapBeforeSpawning)
         {
             InitLocalPlayerInstance();
@@ -789,6 +790,25 @@ public class GameController : MonoBehaviourPunCallbacks, IInRoomCallbacks, IPunO
         ClearRoundObjects();
         var tex = maps[index];
         MapGenerator.Instance.GenerateFromTexture(tex);
+    }
+    public static string GetStackTrace()
+    {
+        var st = new System.Diagnostics.StackTrace(1,
+                                true);
+        var frames = st.GetFrames();
+        var traceString = new System.Text.StringBuilder();
+
+        foreach (var frame in frames)
+        {
+            if (frame.GetFileLineNumber() < 1)
+                continue;
+
+            traceString.Append("File: " + frame.GetFileName());
+            traceString.Append(", Method:" + frame.GetMethod().Name);
+            traceString.Append(", LineNumber: " + frame.GetFileLineNumber());
+        }
+
+        return traceString.ToString();
     }
 
 }

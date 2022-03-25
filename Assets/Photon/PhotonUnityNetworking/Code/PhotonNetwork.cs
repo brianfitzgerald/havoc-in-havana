@@ -23,10 +23,10 @@ namespace Photon.Pun
     using Debug = UnityEngine.Debug;
     using Hashtable = ExitGames.Client.Photon.Hashtable;
 
-#if UNITY_EDITOR
+    #if UNITY_EDITOR
     using UnityEditor;
     using System.IO;
-#endif
+    #endif
 
 
     public struct InstantiateParameters
@@ -64,7 +64,7 @@ namespace Photon.Pun
     public static partial class PhotonNetwork
     {
         /// <summary>Version number of PUN. Used in the AppVersion, which separates your playerbase in matchmaking.</summary>
-        public const string PunVersion = "2.33.3";
+        public const string PunVersion = "2.40";
 
         /// <summary>Version number of your game. Setting this updates the AppVersion, which separates your playerbase in matchmaking.</summary>
         /// <remarks>
@@ -130,7 +130,7 @@ namespace Photon.Pun
         public static string ServerAddress { get { return (NetworkingClient != null) ? NetworkingClient.CurrentServerAddress : "<not connected>"; } }
 
         /// <summary>Currently used Cloud Region (if any). As long as the client is not on a Master Server or Game Server, the region is not yet defined.</summary>
-        public static string CloudRegion { get { return (NetworkingClient != null && IsConnected && Server != ServerConnection.NameServer) ? NetworkingClient.CloudRegion : null; } }
+        public static string CloudRegion { get { return (NetworkingClient != null && IsConnected && Server!=ServerConnection.NameServer) ? NetworkingClient.CloudRegion : null; } }
 
         /// <summary>The cluster name provided by the Name Server.</summary>
         /// <remarks>
@@ -140,7 +140,7 @@ namespace Photon.Pun
         ///
         /// Note that the Name Server may assign another cluster, if the requested one is not configured or available.
         /// </remarks>
-        public static string CurrentCluster { get { return (NetworkingClient != null) ? NetworkingClient.CurrentCluster : null; } }
+        public static string CurrentCluster { get { return (NetworkingClient != null ) ? NetworkingClient.CurrentCluster : null; } }
 
         /// <summary>Key to save the "Best Region Summary" in the Player Preferences.</summary>
         private const string PlayerPrefsKey = "PUNCloudBestRegion";
@@ -398,6 +398,16 @@ namespace Photon.Pun
             }
         }
 
+        /// <summary>
+        /// Used to enable reaction to CloseConnection events. Default: false.
+        /// </summary>
+        /// <remarks>
+        /// Using CloseConnection is a security risk, as exploiters can send the event as Master Client.
+        ///
+        /// In best case, a game would implement this "disconnect others" independently from PUN in game-code
+        /// with some security checks.
+        /// </remarks>
+        public static bool EnableCloseConnection = false;
 
         /// <summary>
         /// The minimum difference that a Vector2 or Vector3(e.g. a transforms rotation) needs to change before we send it via a PhotonView's OnSerialize/ObservingComponent.
@@ -692,7 +702,7 @@ namespace Photon.Pun
 
                 uint u = (uint)ServerTimestamp;
                 double t = u;
-                frametime = t / 1000.0d;
+                frametime =  t / 1000.0d;
                 frame = UnityEngine.Time.frameCount;
                 return frametime;
             }
@@ -1001,7 +1011,7 @@ namespace Photon.Pun
         /// <see cref="LoadBalancingClient.ServerPortOverrides"/>
         public static PhotonPortDefinition ServerPortOverrides
         {
-            get { return (NetworkingClient == null) ? new PhotonPortDefinition() : NetworkingClient.ServerPortOverrides; }
+            get { return (NetworkingClient == null) ? new PhotonPortDefinition() :  NetworkingClient.ServerPortOverrides; }
             set { if (NetworkingClient != null) NetworkingClient.ServerPortOverrides = value; }
         }
 
@@ -1015,19 +1025,34 @@ namespace Photon.Pun
         /// </summary>
         static PhotonNetwork()
         {
-#if !UNITY_EDITOR || (UNITY_EDITOR && !UNITY_2019_4_OR_NEWER)
-            StaticReset();
-#endif
+            #if !UNITY_EDITOR
+            StaticReset();  // in builds, we just reset/init the client once
+            #else
+
+                #if UNITY_2019_4_OR_NEWER
+                if (NetworkingClient == null)
+                {
+                    NetworkingClient = new LoadBalancingClient();
+                }
+                #else
+                StaticReset();  // in OLDER unity editor versions there is no RuntimeInitializeOnLoadMethod, so call reset
+                #endif
+
+            #endif
         }
 
-#if UNITY_2019_4_OR_NEWER && UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-#endif
+        #if UNITY_EDITOR && UNITY_2019_4_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        #endif
         private static void StaticReset()
         {
-#if UNITY_EDITOR
-            if (!EditorApplication.isPlayingOrWillChangePlaymode) return;
-#endif
+            #if UNITY_EDITOR
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                return;
+            }
+            #endif
+
             // This clear is for when Domain Reloading is disabled. Typically will already be empty.
             monoRPCMethodsCache.Clear();
 
@@ -1127,7 +1152,9 @@ namespace Photon.Pun
 
 
             NetworkingClient.LoadBalancingPeer.TransportProtocol = appSettings.Protocol;
+            NetworkingClient.ExpectedProtocol = null;
             NetworkingClient.EnableProtocolFallback = appSettings.EnableProtocolFallback;
+            NetworkingClient.AuthMode = appSettings.AuthMode;
 
 
             IsMessageQueueRunning = true;
@@ -1468,13 +1495,19 @@ namespace Photon.Pun
             }
         }
 
-        /// <summary>Request a client to disconnect (KICK). Only the master client can do this</summary>
-        /// <remarks>Only the target player gets this event. That player will disconnect automatically, which is what the others will notice, too.</remarks>
+        /// <summary>Request a client to disconnect/kick, which happens if EnableCloseConnection is set to true. Only the master client can do this.</summary>
+        /// <remarks>Only the target player gets this event. That player will disconnect if EnableCloseConnection = true.</remarks>
         /// <param name="kickPlayer">The Player to kick.</param>
         public static bool CloseConnection(Player kickPlayer)
         {
             if (!VerifyCanUseNetwork())
             {
+                return false;
+            }
+
+            if (!PhotonNetwork.EnableCloseConnection)
+            {
+                Debug.LogError("CloseConnection is disabled. No need to call it.");
                 return false;
             }
 
@@ -1627,7 +1660,7 @@ namespace Photon.Pun
             }
             if (NetworkingClient.Server != ServerConnection.MasterServer || !IsConnectedAndReady)
             {
-                Debug.LogError("JoinRandomRoom failed. Client is on " + NetworkingClient.Server + " (must be Master Server for matchmaking)" + (IsConnectedAndReady ? " and ready" : " but not ready for operations (State: " + NetworkingClient.State + ")") + ". Wait for callback: OnJoinedLobby or OnConnectedToMaster.");
+                Debug.LogError("JoinRandomRoom failed. Client is on "+ NetworkingClient.Server+ " (must be Master Server for matchmaking)" + (IsConnectedAndReady ? " and ready" : " but not ready for operations (State: "+ NetworkingClient.State + ")") + ". Wait for callback: OnJoinedLobby or OnConnectedToMaster.");
                 return false;
             }
 
@@ -1660,10 +1693,10 @@ namespace Photon.Pun
         /// This client's State is set to ClientState.Joining immediately.
         ///
         /// Either IMatchmakingCallbacks.OnJoinedRoom or IMatchmakingCallbacks.OnCreatedRoom gets called.
-        /// 
+        ///
         /// Should the creation on the Master Server, IMatchmakingCallbacks.OnJoinRandomFailed gets called.
         /// Should the "join" on the Game Server fail, IMatchmakingCallbacks.OnJoinRoomFailed gets called.
-        /// 
+        ///
         ///
         /// Check the return value to make sure the operation will be called on the server.
         /// Note: There will be no callbacks if this method returned false.
@@ -1683,7 +1716,7 @@ namespace Photon.Pun
             }
             if (NetworkingClient.Server != ServerConnection.MasterServer || !IsConnectedAndReady)
             {
-                Debug.LogError("JoinRandomOrCreateRoom failed. Client is on " + NetworkingClient.Server + " (must be Master Server for matchmaking)" + (IsConnectedAndReady ? " and ready" : " but not ready for operations (State: " + NetworkingClient.State + ")") + ". Wait for callback: OnJoinedLobby or OnConnectedToMaster.");
+                Debug.LogError("JoinRandomOrCreateRoom failed. Client is on "+ NetworkingClient.Server+ " (must be Master Server for matchmaking)" + (IsConnectedAndReady ? " and ready" : " but not ready for operations (State: "+ NetworkingClient.State + ")") + ". Wait for callback: OnJoinedLobby or OnConnectedToMaster.");
                 return false;
             }
 
@@ -2441,7 +2474,7 @@ namespace Photon.Pun
         {
             if (CurrentRoom == null)
             {
-                Debug.LogError("Can not Instantiate before the client joined/created a room. State: " + PhotonNetwork.NetworkClientState);
+                Debug.LogError("Can not Instantiate before the client joined/created a room. State: "+PhotonNetwork.NetworkClientState);
                 return null;
             }
 
@@ -2951,7 +2984,7 @@ namespace Photon.Pun
         {
             HashSet<GameObject> objectsWithComponent = new HashSet<GameObject>();
 
-            Component[] targetComponents = (Component[])GameObject.FindObjectsOfType(type);
+            Component[] targetComponents = (Component[]) GameObject.FindObjectsOfType(type);
             for (int index = 0; index < targetComponents.Length; index++)
             {
                 if (targetComponents[index] != null)
@@ -3034,7 +3067,7 @@ namespace Photon.Pun
 
             PhotonNetwork.IsMessageQueueRunning = false;
             loadingLevelAndPausedNetwork = true;
-            _AsyncLevelLoadingOperation = SceneManager.LoadSceneAsync(levelNumber, LoadSceneMode.Single);
+            _AsyncLevelLoadingOperation = SceneManager.LoadSceneAsync(levelNumber,LoadSceneMode.Single);
         }
 
         /// <summary>This method wraps loading a level asynchronously and pausing network messages during the process.</summary>
@@ -3169,8 +3202,13 @@ namespace Photon.Pun
 
 
             // in the editor, store the settings file as it's not loaded
-#if UNITY_EDITOR
+            #if  UNITY_EDITOR
             // don't save the settings before OnProjectUpdated got called (this hints at an ongoing import/load)
+            if (!PhotonEditorUtils.ProjectChangedWasCalled)
+            {
+                return;
+            }
+
             string punResourcesDirectory = PhotonNetwork.FindPunAssetFolder() + "Resources/";
             string serverSettingsAssetPath = punResourcesDirectory + PhotonNetwork.ServerSettingsFileName + ".asset";
             string serverSettingsDirectory = Path.GetDirectoryName(serverSettingsAssetPath);
@@ -3189,11 +3227,11 @@ namespace Photon.Pun
 
             // if the project does not have PhotonServerSettings yet, enable "Development Build" to use the Dev Region.
             EditorUserBuildSettings.development = true;
-#endif
+            #endif
         }
 
 
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
 
         /// <summary>
         /// Finds the asset path base on its name or search query: https://docs.unity3d.com/ScriptReference/AssetDatabase.FindAssets.html
@@ -3202,14 +3240,13 @@ namespace Photon.Pun
         /// <param name="asset">Asset.</param>
         public static string FindAssetPath(string asset)
         {
-            string[] guids = AssetDatabase.FindAssets(asset, null);
+            string[] guids = AssetDatabase.FindAssets (asset, null);
             if (guids.Length != 1)
             {
                 return string.Empty;
-            }
-            else
+            } else
             {
-                return AssetDatabase.GUIDToAssetPath(guids[0]);
+                return AssetDatabase.GUIDToAssetPath (guids [0]);
             }
         }
 
@@ -3220,18 +3257,18 @@ namespace Photon.Pun
         /// <returns>The pun asset folder.</returns>
         public static string FindPunAssetFolder()
         {
-            string _thisPath = FindAssetPath("PunClasses");
+            string _thisPath =	FindAssetPath("PunClasses");
             string _PunFolderPath = string.Empty;
 
             //Debug.Log("FindPunAssetFolder "+_thisPath);
-            string[] subdirectoryEntries = _thisPath.Split('/');
+            string[] subdirectoryEntries = _thisPath.Split ('/');
             foreach (string dir in subdirectoryEntries)
             {
-                if (!string.IsNullOrEmpty(dir))
+                if (!string.IsNullOrEmpty (dir))
                 {
-                    _PunFolderPath += dir + "/";
+                    _PunFolderPath += dir +"/";
 
-                    if (string.Equals(dir, "PhotonUnityNetworking"))
+                    if (string.Equals (dir, "PhotonUnityNetworking"))
                     {
                         //	Debug.Log("_PunFolderPath "+_PunFolderPath);
                         return _PunFolderPath;
@@ -3269,7 +3306,7 @@ namespace Photon.Pun
             }
         }
 
-#endif
+        #endif
 
     }
 }

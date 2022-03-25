@@ -252,6 +252,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
+        Debug.Log(GameController.GetStackTrace());
         if (stream.IsWriting)
         {
             // Input
@@ -382,6 +383,8 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     // process character movement only; input goes in GunController
     private void Update()
     {
+        return;
+        Debug.Log(GameController.GetStackTrace());
         if (!isSetup) return;
         var canUpdatePlayer = (Time.time + minInterfaceUpdateInterval) > lastUpdateFrame;
         if (this.playerState.colorIndex != lastFramePlayerState.colorIndex && !colorSet && canUpdatePlayer)
