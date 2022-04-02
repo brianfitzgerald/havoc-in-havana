@@ -8,7 +8,7 @@ import shutil
 from jinja2.loaders import FileSystemLoader
 
 pf = platform.system()
-unity_executable = r'"C:\Program Files\Unity\Hub\Editor\2021.2.3f1\Editor\Unity.exe"' if pf == "Windows" else "/Applications/Unity/Hub/Editor/2021.2.7f1/Unity.app/Contents/MacOS/Unity"
+unity_executable = r'"C:\Program Files\Unity\Hub\Editor\2021.2.3f1\Editor\Unity.exe"' if pf == "Windows" else "/Applications/Unity/Hub/Editor/2022.1.0b13/Unity.app/Contents/MacOS/Unity"
 
 project_path = os.path.dirname(os.path.realpath(__file__))
 home = os.path.expanduser('~')
